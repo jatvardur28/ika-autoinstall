@@ -18,19 +18,13 @@ echo "🐳 Запуск Docker..."
 systemctl enable docker
 systemctl start docker
 
-echo "📥 Установка Sui CLI (альтернативный способ)..."
-cd ~
-git clone https://github.com/qyeah98/sui-installer.git
-cd sui-installer
-chmod +x install.sh
-./install.sh
-cd ~
-rm -rf sui-installer
+echo "📥 Установка Sui CLI через qyeah98/sui-installer..."
+bash <(curl -s https://raw.githubusercontent.com/qyeah98/sui-installer/main/install.sh)
 
 echo "🪙 Генерация нового Sui-кошелька..."
 WALLET_DATA=$(sui client new-address ed25519 --json)
-WALLET_ADDR=$(echo $WALLET_DATA | jq -r .address)
-MNEMONIC=$(echo $WALLET_DATA | jq -r .mnemonic)
+WALLET_ADDR=$(echo "$WALLET_DATA" | jq -r .address)
+MNEMONIC=$(echo "$WALLET_DATA" | jq -r .mnemonic)
 
 echo -e "SUI ADDRESS: $WALLET_ADDR\nMNEMONIC: $MNEMONIC" > ~/sui_wallet_backup.txt
 chmod 600 ~/sui_wallet_backup.txt
