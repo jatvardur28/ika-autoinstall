@@ -2,36 +2,32 @@
 
 set -e
 
-echo "🔄 Обновление системы..."
+echo "🔧 Обновление системы..."
 apt update && apt upgrade -y
 
 echo "📦 Установка зависимостей..."
-apt install -y curl wget git ufw docker.io docker-compose jq build-essential pkg-config libssl-dev libclang-dev clang cmake
+apt install -y curl git ufw unzip jq build-essential pkg-config libssl-dev libclang-dev cmake lsb-release
+
+echo "🐳 Установка Docker и Docker Compose..."
+apt install -y docker.io docker-compose
+systemctl enable docker --now
 
 echo "🔓 Настройка файрвола..."
-ufw allow 22
-ufw allow 9000
-ufw allow 9184
+ufw allow OpenSSH
+ufw allow 8080/tcp
+ufw allow 9000/tcp
+ufw allow 9184/tcp
+ufw allow 443/tcp
 ufw --force enable
 
-echo "🐳 Запуск Docker..."
-systemctl enable docker
-systemctl start docker
+echo "📁 Создание рабочих директорий..."
+mkdir -p ~/ika-node && cd ~/ika-node
 
-echo "📥 Установка Sui CLI через qyeah98/sui-installer..."
-bash <(curl -s https://raw.githubusercontent.com/qyeah98/sui-installer/main/install.sh)
+echo "📥 Загрузка конфигурации Ika Node..."
+curl -sL https://raw.githubusercontent.com/ikamachines/ika/main/docker-compose.yaml -o docker-compose.yaml
 
-echo "🪙 Генерация нового Sui-кошелька..."
-WALLET_DATA=$(sui client new-address ed25519 --json)
-WALLET_ADDR=$(echo "$WALLET_DATA" | jq -r .address)
-MNEMONIC=$(echo "$WALLET_DATA" | jq -r .mnemonic)
+echo "🐳 Запуск Ika Node..."
+docker-compose pull
+docker-compose up -d
 
-echo -e "SUI ADDRESS: $WALLET_ADDR\nMNEMONIC: $MNEMONIC" > ~/sui_wallet_backup.txt
-chmod 600 ~/sui_wallet_backup.txt
-echo "✅ Адрес Sui: $WALLET_ADDR"
-echo "🧠 Сид-фраза сохранена в ~/sui_wallet_backup.txt"
-
-echo "🚰 Получение тестовых токенов..."
-sui client faucet --address "$WALLET_ADDR"
-
-echo "✅ Установка завершена. Рекомендуется перезагрузить систему: sudo reboot"
+echo "✅ Установка завершена. Далее установите Sui CLI вручную и продолжите настройку."
